@@ -16,15 +16,15 @@ class ServiceProvider extends ServiceProvider
      */
     protected function publishConfiguration()
     {
-        $this->mergeConfigFrom($this->getConfigFileStub(), 'Encompass');
+        $this->mergeConfigFrom($this->getConfigFileStub(), 'encompass');
         $this->publishes([$this->getConfigFileStub() => $this->getConfigFile()], 'config');
     }
 
     protected function getConfigFile()
     {
         return function_exists('config_path')
-            ? config_path('Encompass.php')
-            : base_path('config/Encompass.php');
+            ? config_path('encompass.php')
+            : base_path('config/encompass.php');
     }
 
     /**
@@ -34,6 +34,6 @@ class ServiceProvider extends ServiceProvider
      */
     protected function getConfigFileStub()
     {
-        return  __DIR__ . '/../../config/Encompass.php';
+        return  __DIR__ . '/../../config/encompass.php';
     }
 }
