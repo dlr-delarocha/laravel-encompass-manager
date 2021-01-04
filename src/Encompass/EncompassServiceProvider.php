@@ -4,7 +4,7 @@ namespace Encompass;
 
 use Illuminate\Support\ServiceProvider;
 
-class EncompassServiceProvider extends EncompassServiceProvider
+class EncompassServiceProvider extends ServiceProvider
 {
     public function boot()
     {
