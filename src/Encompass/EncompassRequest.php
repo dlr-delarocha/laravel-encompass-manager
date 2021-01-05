@@ -18,7 +18,7 @@ class EncompassRequest
      * @param null|string $accessToken
      * @param array $params
      */
-    public function __construct($method = null, $endpoint = null, $accessToken = null, array $params = [])
+    public function __construct($method = null, $endpoint = null, array $params = [])
     {
         $this->setMethod($method);
         $this->setEndpoint($endpoint);
@@ -78,6 +78,7 @@ class EncompassRequest
     {
         return ['headers' => $this->headers];
     }
+    
 
     /**
      * Set the headers for this request.

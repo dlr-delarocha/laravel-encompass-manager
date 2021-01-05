@@ -2,6 +2,8 @@
 namespace Encompass;
 
 use Encompass\Exceptions\EncompassResponseException;
+use Illuminate\Support\Str;
+use SimpleXMLElement;
 use Closure;
 
 class EncompassResponse
@@ -72,7 +74,7 @@ class EncompassResponse
     private function decodeBody()
     {
         $this->decodedBody = json_decode($this->body, true);
-
+                        
         if ($this->isError() || is_null($this->decodedBody)) {
             $this->makeException();
         }
@@ -161,11 +163,31 @@ class EncompassResponse
      * develop mode
      * @return array|mixed
      */
-    public function getItems()
+    public function toXML()
     {
-        if (!array_key_exists('data', $this->decodedBody)) {
-            return array();
+        $array = $this->getDecodedBody();
+        return $this->arrayToXML($array, new SimpleXMLElement('<LoanResponse/>'))->asXML();
+    }
+
+    /**
+     * @param SimpleXMLElement $xml
+     * @return SimpleXMLElement
+     */
+    function arrayToXML(array $array, SimpleXMLElement $xml)
+    {
+        foreach ($array as $key => $value) {
+            if (is_array($value) ) {
+              
+                if (is_numeric($key)) {
+                    $this->arrayToXML($value, $xml->addChild(Str::singular($xml->getName())));
+                } else {
+                    $this->arrayToXML($value, $xml->addChild($key));
+                }            
+            } else {
+                $xml->addChild($key, htmlspecialchars($value));
+            }         
+ 
         }
-        return current($this->decodedBody['data']);
+        return $xml;
     }
 }
