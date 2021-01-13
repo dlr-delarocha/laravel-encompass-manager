@@ -46,10 +46,10 @@ class GuzzleHttpClient
      */
     public function getToken()
     {
-        if (!Cache::has('access_token')) {
+        if (! Cache::has('token_' . auth('lender')->user()->id)) {
             throw new MissingEnvironmentVariablesException('Encompass Token is require in request.');
         }
-        return Cache::get('access_token');
+        return Cache::get('token_' . auth('lender')->user()->id);
     }
 
     /**
@@ -67,7 +67,7 @@ class GuzzleHttpClient
     public function prepareRequestMessage(EncompassRequest $request)
     {
         $url = $request->getEndpoint();
-        
+
         $request->setHeaders([
             'Authorization' => "Bearer {$this->getToken()}"
         ]);
@@ -89,13 +89,13 @@ class GuzzleHttpClient
     public function sendRequest(EncompassRequest $request)
     {
         list($url, $method, $parameters , $headers) = $this->prepareRequestMessage($request);
-                
+
         try {
             $rawResponse = $this->guzzleClient->request($method, $url, array_merge($parameters, $headers));
         } catch (RequestException $e) {
             $rawResponse = $e->getResponse();
         }
-        
+
         $returnResponse = new EncompassResponse(
             $request,
             $rawResponse->getBody(),
@@ -103,8 +103,8 @@ class GuzzleHttpClient
             $rawResponse->getReasonPhrase(),
             $rawResponse->getHeaders()
         );
-        
-    
+
+
         if ($returnResponse->isError()) {
             throw $returnResponse->getThrownException();
         }

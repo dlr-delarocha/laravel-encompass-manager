@@ -74,7 +74,7 @@ class EncompassResponse
     private function decodeBody()
     {
         $this->decodedBody = json_decode($this->body, true);
-                        
+
         if ($this->isError() || is_null($this->decodedBody)) {
             $this->makeException();
         }
@@ -166,6 +166,7 @@ class EncompassResponse
     public function toXML()
     {
         $array = $this->getDecodedBody();
+
         return $this->arrayToXML($array, new SimpleXMLElement('<LoanResponse/>'))->asXML();
     }
 
@@ -177,16 +178,16 @@ class EncompassResponse
     {
         foreach ($array as $key => $value) {
             if (is_array($value) ) {
-              
+
                 if (is_numeric($key)) {
                     $this->arrayToXML($value, $xml->addChild(Str::singular($xml->getName())));
                 } else {
                     $this->arrayToXML($value, $xml->addChild($key));
-                }            
+                }
             } else {
                 $xml->addChild($key, htmlspecialchars($value));
-            }         
- 
+            }
+
         }
         return $xml;
     }

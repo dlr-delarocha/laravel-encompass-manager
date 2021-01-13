@@ -6,6 +6,7 @@ use Encompass\Client\HttpClient;
 use Encompass\Exceptions\EncompassAuthenticationException;
 use Encompass\Exceptions\MissingEnvironmentVariablesException;
 use http\Client;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Cache;
 
 class AuthRequest extends HttpClient
@@ -28,7 +29,6 @@ class AuthRequest extends HttpClient
         $this->setMethod($method);
         $this->client = $this->createHttpClient();
         return $this;
-
     }
 
     /**
@@ -69,7 +69,6 @@ class AuthRequest extends HttpClient
         } catch (RequestException $e) {
             $rawResponse = $e->getResponse();
         }
-        
 
         $returnResponse = new EncompassResponse(
             $request,
@@ -78,28 +77,12 @@ class AuthRequest extends HttpClient
             $rawResponse->getReasonPhrase(),
             $rawResponse->getHeaders()
         );
-        
+
         if ($returnResponse->isError()) {
             throw $returnResponse->getThrownException();
         }
 
-        return $request->saveTokenFromResponse($returnResponse);
-    }
-
-    /** 
-     * @todo must be changed for a User Model request
-     * @return mixed
-     */
-    public function getUser($user = null)
-    {
-        if (empty(config('encompass.user')) && is_null($user)) {
-            throw new MissingEnvironmentVariablesException('Encompass User is require in Encompass config file.');
-        }
-
-        if (! is_null($user)) {
-            $account = $user->encompassAccount;
-        }
-        return $this->buildNameByAuthenticationType($account);
+       return $request->saveTokenFromResponse($returnResponse);
     }
 
     /**
@@ -130,7 +113,7 @@ class AuthRequest extends HttpClient
      */
     private function buildByModel(EncompassAccount $account)
     {
-        return sprintf(self::$format_user_name, $account->user,  $account->client_id);
+        return sprintf(self::$format_user_name, $account->user,  $account->user_client_id);
     }
 
     /**
@@ -143,14 +126,66 @@ class AuthRequest extends HttpClient
     }
 
     /**
+     * @todo must be changed for a User Model request
      * @return mixed
      */
-    public function getPassword()
+    public function getUser($user = null)
     {
-        if (empty(config('encompass.password'))) {
-            throw new MissingEnvironmentVariablesException('Encompass Password is require in Encompass config file.');
+        if (empty(config('encompass.user')) && is_null($user)) {
+            throw new MissingEnvironmentVariablesException('Encompass User is require in Encompass config file.');
         }
-        return  config('encompass.password') ;
+
+        $account = $user->encompassAccount;
+        if (! $account) {
+            throw new EncompassAuthenticationException('EncompassAccount model empty');
+        }
+
+        return $this->buildNameByAuthenticationType($account);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPassword($user)
+    {
+        if (empty(config('encompass.password')) && is_null($user->encompassAccount)) {
+            throw new MissingEnvironmentVariablesException('Encompass password is require.');
+        }
+
+        $password = $user->encompassAccount->password;
+
+        if (! $password) {
+            throw new AuthenticationException('Encompass Password is require');
+        }
+
+        return  $password;
+    }
+
+    private function getClientId($user)
+    {
+        if (empty(config('encompass.client_id')) && is_null($user->encompassAccount)) {
+            throw new MissingEnvironmentVariablesException('Encompass Client_id is require.');
+        }
+
+        $clientId = $user->encompassAccount->client_id;
+        if (! $clientId) {
+            throw new AuthenticationException('Encompass Client_secret is require');
+        }
+        return  $clientId;
+    }
+
+    private function getSecret($user)
+    {
+        if (empty(config('encompass.client_id')) && is_null($user->encompassAccount)) {
+            throw new MissingEnvironmentVariablesException('Encompass Client_secret is require.');
+        }
+
+        $secret = $user->encompassAccount->client_secret;
+        if (! $secret) {
+            throw new AuthenticationException('Encompass Client_secret is require');
+        }
+
+        return $secret;
     }
     
     /**
@@ -165,10 +200,10 @@ class AuthRequest extends HttpClient
             [
                 'form_params' => [
                     'grant_type' => 'password',
-                    'client_id' => config('encompass.client_id'),
-                    'client_secret' => config('encompass.client_secret'),
+                    'client_id' =>  $this->getClientId($user),
+                    'client_secret' =>  $this->getSecret($user),
                     'username' => $this->getUser($user),
-                    'password' => $this->getPassword()
+                    'password' => $this->getPassword($user)
                 ]
             ]
         );

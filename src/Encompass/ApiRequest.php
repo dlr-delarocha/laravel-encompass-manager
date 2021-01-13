@@ -2,6 +2,7 @@
 namespace Encompass;
 
 use Encompass\Client\HttpClient;
+use Encompass\Exceptions\EncompassSDKException;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Cache;
 
@@ -34,7 +35,7 @@ class ApiRequest extends HttpClient
     {
         return $this->client;
     }
-    
+
     /**
      * @param $endpoint
      * @param string|null $accessToken
@@ -45,11 +46,15 @@ class ApiRequest extends HttpClient
      */
     public function get($endpoint, $params = [])
     {
-        return $this->sendRequest(
-            'GET',
-            config('encompass.domain') . $endpoint,
-            $params
-        );
+        try {
+            return $this->sendRequest(
+                'GET',
+                config('encompass.domain') . $endpoint,
+                $params
+            );
+        } catch (\Exception $e) {
+           throw new EncompassSDKException($e);
+        }
     }
 
     /**
@@ -64,7 +69,7 @@ class ApiRequest extends HttpClient
     private function sendRequest($method, $endpoint, array $params = [])
     {
         $request = $this->request($method, $endpoint, $params);
-        
+
         return $this->lastResponse = $this->client->sendRequest($request);
     }
 

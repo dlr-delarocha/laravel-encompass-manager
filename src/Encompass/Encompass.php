@@ -3,6 +3,7 @@
 namespace Encompass;
 
 use App\Lender;
+use Aws\Neptune\NeptuneClient;
 use Encompass\Client\HttpClient;
 use Encompass\Objects\Loan;
 use Illuminate\Database\Eloquent\Model;
@@ -33,7 +34,7 @@ class Encompass extends HttpClient
      */
     public function getService()
     {
-        Cache::remember('access_token', now()->addMinutes(14), function () {
+        Cache::remember('token_' . auth('lender')->user()->id, now()->addMinutes(14), function () {
             return $this->login();
         });
         return $this;
