@@ -2,21 +2,27 @@
 
 namespace Encompass;
 
+use App\Lender;
 use Encompass\Client\HttpClient;
 use Encompass\Objects\Loan;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
 class Encompass extends HttpClient
 {
     protected $client;
 
+    protected $user;
+
     /**
+     * @todo this argument model must be included in the package
      * Encompass constructor.
      * @throws \Exception
      */
-    public function __construct()
+    public function __construct(Model $user = null)
     {
         $this->client = $this->createHttpClient();
+        $this->user = $user;
         return $this;
     }
 
@@ -44,7 +50,7 @@ class Encompass extends HttpClient
             '/login'
         );
 
-        return $request->refreshToken($request);
+        return $request->refreshToken($request, $this->user);
     }
 
     /**

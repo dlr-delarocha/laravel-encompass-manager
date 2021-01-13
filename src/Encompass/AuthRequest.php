@@ -1,7 +1,9 @@
 <?php
 namespace Encompass;
 
+use App\Models\EncompassAccount;
 use Encompass\Client\HttpClient;
+use Encompass\Exceptions\EncompassAuthenticationException;
 use Encompass\Exceptions\MissingEnvironmentVariablesException;
 use http\Client;
 use Illuminate\Support\Facades\Cache;
@@ -9,7 +11,10 @@ use Illuminate\Support\Facades\Cache;
 class AuthRequest extends HttpClient
 {
     public $method;
+
     protected $client;
+
+    static $format_user_name = '%s@encompass:%s';
 
     /**
      * AuthRequest constructor.
@@ -57,10 +62,10 @@ class AuthRequest extends HttpClient
      * @throws Exceptions\EncompassResponseException
      * @throws GuzzleException
      */
-    public function refreshToken(AuthRequest $request)
+    public function refreshToken(AuthRequest $request, $user = null)
     {
         try {
-            $rawResponse = $this->login();
+            $rawResponse = $this->login($user);
         } catch (RequestException $e) {
             $rawResponse = $e->getResponse();
         }
@@ -85,13 +90,56 @@ class AuthRequest extends HttpClient
      * @todo must be changed for a User Model request
      * @return mixed
      */
-    public function getUser()
+    public function getUser($user = null)
     {
-        if (empty(config('encompass.user'))) {
+        if (empty(config('encompass.user')) && is_null($user)) {
             throw new MissingEnvironmentVariablesException('Encompass User is require in Encompass config file.');
         }
-        $format = '%s@encompass:%s';
-        return sprintf($format, config('encompass.user'),  config('encompass.user_client_id'));
+
+        if (! is_null($user)) {
+            $account = $user->encompassAccount;
+        }
+        return $this->buildNameByAuthenticationType($account);
+    }
+
+    /**
+     * @param null $account
+     * @return string
+     * @throws EncompassAuthenticationException
+     */
+    public function buildNameByAuthenticationType($account = null)
+    {
+        if ($this->isAuthenticationByModel() && empty($account)) {
+            throw new EncompassAuthenticationException('Encompass Account is required');
+        }
+
+        return $this->isAuthenticationByModel() ? $this->buildByModel($account) : $this->buildByDefault($account);
+    }
+
+    /**
+     * @return bool
+     */
+    private function isAuthenticationByModel()
+    {
+        return config('encompass.auth.type') === 'model';
+    }
+
+    /**
+     * @param EncompassAccount $account
+     * @return string
+     */
+    private function buildByModel(EncompassAccount $account)
+    {
+        return sprintf(self::$format_user_name, $account->user,  $account->client_id);
+    }
+
+    /**
+     * @param EncompassAccount $account
+     * @return string
+     */
+    private function buildByDefault(EncompassAccount $account)
+    {
+        return sprintf(self::$format_user_name, config('encompass.user'),  config('encompass.user_client_id'));
     }
 
     /**
@@ -110,7 +158,7 @@ class AuthRequest extends HttpClient
      * @throws MissingEnvironmentVariablesException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    private function login()
+    private function login($user = null)
     {
         $request = $this->client->getGuzzleClient();
         return $request->request('POST', config('encompass.domain') . $this->getEndpoint(),
@@ -119,7 +167,7 @@ class AuthRequest extends HttpClient
                     'grant_type' => 'password',
                     'client_id' => config('encompass.client_id'),
                     'client_secret' => config('encompass.client_secret'),
-                    'username' => $this->getUser(),
+                    'username' => $this->getUser($user),
                     'password' => $this->getPassword()
                 ]
             ]
