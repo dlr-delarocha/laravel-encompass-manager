@@ -4,9 +4,9 @@ return array(
     'client_id' => env('CLIENT_ID'),
     'client_secret' => env('CLIENT_SECRET'),
     'domain' => env('ENCOMPASS_DOMAIN'),
-    'user' => env('ENCOMPASS_USER_ID', 'admin'),
-    'user_client_id' => env('ENCOMPASS_USER_ID', 'BE11137124'),
-    'password' => env('ENCOMPASS_PASSWORD', 'Ginnie101@'),
+    'user' => env('ENCOMPASS_USER_ID'),
+    'user_client_id' => env('ENCOMPASS_USER_ID'),
+    'password' => env('ENCOMPASS_PASSWORD'),
 
     //authentication
     //model, local
