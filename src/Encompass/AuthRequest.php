@@ -152,7 +152,7 @@ class AuthRequest extends HttpClient
             throw new MissingEnvironmentVariablesException('Encompass password is require.');
         }
 
-        $password = $user->encompassAccount->password;
+        $password = decrypt($user->encompassAccount->password);
 
         if (! $password) {
             throw new AuthenticationException('Encompass Password is require');
