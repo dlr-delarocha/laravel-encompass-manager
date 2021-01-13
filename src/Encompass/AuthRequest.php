@@ -64,11 +64,7 @@ class AuthRequest extends HttpClient
      */
     public function refreshToken(AuthRequest $request, $user = null)
     {
-        try {
-            $rawResponse = $this->login($user);
-        } catch (RequestException $e) {
-            $rawResponse = $e->getResponse();
-        }
+        $rawResponse = $this->login($user);
 
         $returnResponse = new EncompassResponse(
             $request,
