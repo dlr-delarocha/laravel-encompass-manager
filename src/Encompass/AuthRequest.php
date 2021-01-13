@@ -7,7 +7,7 @@ use Encompass\Exceptions\EncompassAuthenticationException;
 use Encompass\Exceptions\MissingEnvironmentVariablesException;
 use http\Client;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 
 class AuthRequest extends HttpClient
 {
@@ -148,7 +148,7 @@ class AuthRequest extends HttpClient
             throw new MissingEnvironmentVariablesException('Encompass password is require.');
         }
 
-        $password = decrypt($user->encompassAccount->password);
+        $password = Crypt::decryptString($user->encompassAccount->password);
 
         if (! $password) {
             throw new AuthenticationException('Encompass Password is require');
