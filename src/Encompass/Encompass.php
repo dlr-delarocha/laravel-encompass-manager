@@ -35,7 +35,7 @@ class Encompass extends HttpClient
     public function getService()
     {
         Cache::remember('token_' . auth('lender')->user()->id, now()->addMinutes(14), function () {
-            return $this->login();
+             $this->login();
         });
         return $this;
     }
