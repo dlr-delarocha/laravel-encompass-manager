@@ -23,7 +23,7 @@ class Encompass extends HttpClient
      */
     public function __construct(Model $user = null)
     {
-        $this->client = $this->createHttpClient();
+        $this->client = $this->createHttpClient($user);
         $this->user = $user;
         return $this;
     }

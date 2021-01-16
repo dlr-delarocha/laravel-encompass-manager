@@ -15,19 +15,21 @@ class AuthRequest extends HttpClient
 
     protected $client;
 
+    protected $user;
+
     static $format_user_name = '%s@encompass:%s';
 
     /**
      * AuthRequest constructor.
      * @param null $method
-     * @param null $endpoint
+     * @param $user
      * @throws \Exception
-     * @return AuthRequest
      */
-    public function __construct($method = null, $endpoint = null)
+    public function __construct($method = null, $user)
     {
         $this->setMethod($method);
-        $this->client = $this->createHttpClient();
+        $this->user = $user;
+        $this->client = $this->createHttpClient($user);
         return $this;
     }
 
@@ -62,9 +64,9 @@ class AuthRequest extends HttpClient
      * @throws Exceptions\EncompassResponseException
      * @throws GuzzleException
      */
-    public function refreshToken(AuthRequest $request, $user = null)
+    public function refreshToken(AuthRequest $request)
     {
-        $rawResponse = $this->login($user);
+        $rawResponse = $this->login($this->user);
 
         $returnResponse = new EncompassResponse(
             $request,
@@ -183,11 +185,12 @@ class AuthRequest extends HttpClient
 
         return $secret;
     }
-    
+
     /**
+     * @param null $user
      * @return \Psr\Http\Message\ResponseInterface
+     * @throws EncompassAuthenticationException
      * @throws MissingEnvironmentVariablesException
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function login($user = null)
     {

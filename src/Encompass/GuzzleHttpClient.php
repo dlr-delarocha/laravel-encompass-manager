@@ -25,8 +25,9 @@ class GuzzleHttpClient
      * GuzzleHttpClient constructor.
      * @param Client|null $guzzleClient
      */
-    public function __construct(Client $guzzleClient = null)
+    public function __construct(Client $guzzleClient = null, $user)
     {
+        $this->user =  $user;
         $this->guzzleClient = $guzzleClient ?: new Client();
     }
 
@@ -43,13 +44,14 @@ class GuzzleHttpClient
 
     /**
      * @return mixed
+     * @throws MissingEnvironmentVariablesException
      */
     public function getToken()
     {
-        if (! Cache::has('token_' . auth('lender')->user()->id)) {
+        if (! Cache::has('token_' . $this->user->id)) {
             throw new MissingEnvironmentVariablesException('Encompass Token is require in request.');
         }
-        return Cache::get('token_' . auth('lender')->user()->id);
+        return Cache::get('token_' . $this->user->id);
     }
 
     /**
