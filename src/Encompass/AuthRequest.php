@@ -80,7 +80,7 @@ class AuthRequest extends HttpClient
             throw $returnResponse->getThrownException();
         }
 
-       return $request->saveTokenFromResponse($returnResponse);
+        return $request->saveTokenFromResponse($returnResponse);
     }
 
     /**
@@ -127,16 +127,19 @@ class AuthRequest extends HttpClient
      * @todo must be changed for a User Model request
      * @return mixed
      */
-    public function getUser($user = null)
+    public function getUser()
     {
-        if (empty(config('encompass.user')) && is_null($user)) {
+        if (empty(config('encompass.user')) && is_null($this->user)) {
             throw new MissingEnvironmentVariablesException('Encompass User is require in Encompass config file.');
         }
 
-        $account = $user->encompassAccount;
-        if (! $account) {
+        $account = $this->user->encompassAccount;
+        if (empty ($account)) {
             throw new EncompassAuthenticationException('EncompassAccount model empty');
         }
+
+        throw new EncompassAuthenticationException('Afuera');
+
 
         return $this->buildNameByAuthenticationType($account);
     }
@@ -144,13 +147,13 @@ class AuthRequest extends HttpClient
     /**
      * @return mixed
      */
-    public function getPassword($user)
+    public function getPassword()
     {
-        if (empty(config('encompass.password')) && is_null($user->encompassAccount)) {
+        if (empty(config('encompass.password')) && is_null($this->user->encompassAccount)) {
             throw new MissingEnvironmentVariablesException('Encompass password is require.');
         }
 
-        $password = Crypt::decryptString($user->encompassAccount->password);
+        $password = Crypt::decryptString($this->user->encompassAccount->password);
 
         if (! $password) {
             throw new AuthenticationException('Encompass Password is require');
@@ -159,26 +162,26 @@ class AuthRequest extends HttpClient
         return  $password;
     }
 
-    private function getClientId($user)
+    private function getClientId()
     {
-        if (empty(config('encompass.client_id')) && is_null($user->encompassAccount)) {
+        if (empty(config('encompass.client_id')) && is_null($this->user->encompassAccount)) {
             throw new MissingEnvironmentVariablesException('Encompass Client_id is require.');
         }
 
-        $clientId = $user->encompassAccount->client_id;
+        $clientId = $this->user->encompassAccount->client_id;
         if (! $clientId) {
             throw new AuthenticationException('Encompass Client_secret is require');
         }
         return  $clientId;
     }
 
-    private function getSecret($user)
+    private function getSecret()
     {
-        if (empty(config('encompass.client_id')) && is_null($user->encompassAccount)) {
+        if (empty(config('encompass.client_id')) && is_null($this->user->encompassAccount)) {
             throw new MissingEnvironmentVariablesException('Encompass Client_secret is require.');
         }
 
-        $secret = $user->encompassAccount->client_secret;
+        $secret = $this->user->encompassAccount->client_secret;
         if (! $secret) {
             throw new AuthenticationException('Encompass Client_secret is require');
         }
@@ -192,22 +195,22 @@ class AuthRequest extends HttpClient
      * @throws EncompassAuthenticationException
      * @throws MissingEnvironmentVariablesException
      */
-    private function login($user = null)
+    private function login()
     {
         $request = $this->client->getGuzzleClient();
         return $request->request('POST', config('encompass.domain') . $this->getEndpoint(),
             [
                 'form_params' => [
                     'grant_type' => 'password',
-                    'client_id' =>  $this->getClientId($user),
-                    'client_secret' =>  $this->getSecret($user),
-                    'username' => $this->getUser($user),
-                    'password' => $this->getPassword($user)
+                    'client_id' =>  $this->getClientId(),
+                    'client_secret' =>  $this->getSecret(),
+                    'username' => $this->getUser(),
+                    'password' => $this->getPassword()
                 ]
             ]
         );
     }
-    
+
     /**
      * @param EncompassResponse $response
      * @return bool

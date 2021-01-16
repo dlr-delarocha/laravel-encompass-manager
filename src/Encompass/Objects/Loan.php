@@ -13,9 +13,9 @@ class Loan
      * Loan constructor.
      * @param $api
      */
-    public function __construct()
+    public function __construct($user)
     {
-        $this->api = new ApiRequest();
+        $this->api = new ApiRequest($user);
     }
 
     private function getEndpoint()
@@ -33,10 +33,15 @@ class Loan
         return implode(',',  LoanFields::getFields());
     }
 
+    /**
+     * @param $id
+     * @return \Encompass\EncompassResponse
+     * @throws \Encompass\Exceptions\EncompassResponseException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     private function getLoanById($id)
     {
-        $request = new ApiRequest();
-        return $request->get(
+        return $this->api->get(
             $this->getEndpoint() . $id,
             [
                 'query' => [

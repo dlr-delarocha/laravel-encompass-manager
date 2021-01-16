@@ -22,9 +22,9 @@ class ApiRequest extends HttpClient
      * Encompass constructor.
      * @throws \Exception
      */
-    public function __construct()
+    public function __construct($user)
     {
-        $this->client = $this->createHttpClient();
+        $this->client = $this->createHttpClient($user);
         return $this;
     }
 

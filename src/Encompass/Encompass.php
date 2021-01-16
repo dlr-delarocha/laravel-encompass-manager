@@ -35,8 +35,8 @@ class Encompass extends HttpClient
      */
     public function getService()
     {
-        Cache::remember('token_' . $this->user->id,Carbon::now()->addMinutes(14), function () {
-             $this->login();
+        Cache::remember('token_' . $this->user->id, Carbon::now()->addMinutes(14), function () {
+            return $this->login();
         });
         return $this;
     }
@@ -52,7 +52,7 @@ class Encompass extends HttpClient
             '/login'
         );
 
-        return $request->refreshToken($request, $this->user);
+        return $request->refreshToken($request);
     }
 
     /**
@@ -65,17 +65,16 @@ class Encompass extends HttpClient
     {
         return new AuthRequest(
             $method,
-            $endpoint
+            $this->user
         );
     }
 
     /**
-     * @todo must be changed for a factory
      * @return Loan
      */
-    public static function loan()
+    public  function loan()
     {
-        return new Loan();
+        return new Loan($this->user);
     }
 
 
