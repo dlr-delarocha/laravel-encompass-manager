@@ -137,10 +137,7 @@ class AuthRequest extends HttpClient
         if (empty ($account)) {
             throw new EncompassAuthenticationException('EncompassAccount model empty');
         }
-
-        throw new EncompassAuthenticationException('Afuera');
-
-
+        
         return $this->buildNameByAuthenticationType($account);
     }
 
