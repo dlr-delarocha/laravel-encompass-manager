@@ -2,6 +2,8 @@
 namespace Encompass;
 
 use Encompass\Exceptions\EncompassResponseException;
+use Encompass\Exceptions\EncompassValidationException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use SimpleXMLElement;
 use Closure;
@@ -160,12 +162,26 @@ class EncompassResponse
     }
 
     /**
+     * @todo Must be generic method
+     * @param $loan
+     * @return bool
+     */
+    public function hasRequiredFields($loan)
+    {
+        return \Arr::has($loan, 'applications.0.employment');
+    }
+
+    /**
      * develop mode
      * @return array|mixed
      */
     public function toXML()
     {
         $array = $this->getDecodedBody();
+
+        if (! $this->hasRequiredFields($array)) {
+            return new EncompassValidationException('Incomplete file, employment field is missing!');
+        }
 
         return $this->arrayToXML($array, new SimpleXMLElement('<LoanResponse/>'))->asXML();
     }
