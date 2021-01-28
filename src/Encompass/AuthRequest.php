@@ -32,7 +32,7 @@ class AuthRequest extends HttpClient
         $this->setMethod($method);
         $this->user = $user;
         $this->client = $this->createHttpClient($user);
-        $this->credentials = $this->getEncompassCredentials($user);
+        $this->credentials = $this->getEncompassCredentials();
         return $this;
     }
 
