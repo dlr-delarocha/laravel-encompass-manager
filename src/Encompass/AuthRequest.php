@@ -160,9 +160,9 @@ class AuthRequest extends HttpClient
         return  $password;
     }
 
-    private function getEncompassCredentials()
+    private function getEncompassCredentials($user)
     {
-        return $this->user->salesProviders()->where('type', 'encompass')->first();
+        return $user->salesProviders()->where('type', 'encompass')->first();
     }
 
     private function getClientId()
