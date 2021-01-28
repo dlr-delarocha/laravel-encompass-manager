@@ -17,6 +17,8 @@ class AuthRequest extends HttpClient
 
     protected $user;
 
+    protected $credentials;
+
     static $format_user_name = '%s@encompass:%s';
 
     /**
@@ -30,6 +32,7 @@ class AuthRequest extends HttpClient
         $this->setMethod($method);
         $this->user = $user;
         $this->client = $this->createHttpClient($user);
+        $this->credentials = $this->getEncompassCredentials($user);
         return $this;
     }
 
@@ -88,13 +91,13 @@ class AuthRequest extends HttpClient
      * @return string
      * @throws EncompassAuthenticationException
      */
-    public function buildNameByAuthenticationType($account = null)
+    public function buildNameByAuthenticationType()
     {
-        if ($this->isAuthenticationByModel() && empty($account)) {
+        if ($this->isAuthenticationByModel() && empty($this->credentials)) {
             throw new EncompassAuthenticationException('Encompass Account is required');
         }
 
-        return $this->isAuthenticationByModel() ? $this->buildByModel($account) : $this->buildByDefault($account);
+        return $this->isAuthenticationByModel() ? $this->buildByModel() : $this->buildByDefault();
     }
 
     /**
@@ -109,9 +112,9 @@ class AuthRequest extends HttpClient
      * @param EncompassAccount $account
      * @return string
      */
-    private function buildByModel(EncompassAccount $account)
+    private function buildByModel()
     {
-        return sprintf(self::$format_user_name, $account->user,  $account->user_client_id);
+        return sprintf(self::$format_user_name, $this->credentials->user,  $this->credentials->user_client_id);
     }
 
     /**
@@ -133,12 +136,11 @@ class AuthRequest extends HttpClient
             throw new MissingEnvironmentVariablesException('Encompass User is require in Encompass config file.');
         }
 
-        $account = $this->user->encompassAccount;
         if (empty ($account)) {
             throw new EncompassAuthenticationException('EncompassAccount model empty');
         }
-        
-        return $this->buildNameByAuthenticationType($account);
+
+        return $this->buildNameByAuthenticationType();
     }
 
     /**
@@ -146,27 +148,30 @@ class AuthRequest extends HttpClient
      */
     public function getPassword()
     {
-        if (empty(config('encompass.password')) && is_null($this->user->encompassAccount)) {
+        if (empty(config('encompass.password')) && is_null($this->credentials)) {
             throw new MissingEnvironmentVariablesException('Encompass password is require.');
         }
 
-        $password = Crypt::decryptString($this->user->encompassAccount->password);
+        $password = Crypt::decryptString($this->credentials->password);
 
         if (! $password) {
             throw new AuthenticationException('Encompass Password is require');
         }
-
         return  $password;
+    }
+
+    private function getEncompassCredentials()
+    {
+        return $this->user->salesProviders()->where('type', 'encompass')->first();
     }
 
     private function getClientId()
     {
-        if (empty(config('encompass.client_id')) && is_null($this->user->encompassAccount)) {
+        if (empty(config('encompass.client_id')) && is_null($this->credentials)) {
             throw new MissingEnvironmentVariablesException('Encompass Client_id is require.');
         }
 
-        $clientId = $this->user->encompassAccount->client_id;
-        if (! $clientId) {
+        if (! $clientId = $this->credentials->client_id) {
             throw new AuthenticationException('Encompass Client_secret is require');
         }
         return  $clientId;
@@ -174,12 +179,11 @@ class AuthRequest extends HttpClient
 
     private function getSecret()
     {
-        if (empty(config('encompass.client_id')) && is_null($this->user->encompassAccount)) {
+        if (empty(config('encompass.client_id')) && is_null($this->credentials)) {
             throw new MissingEnvironmentVariablesException('Encompass Client_secret is require.');
         }
 
-        $secret = $this->user->encompassAccount->client_secret;
-        if (! $secret) {
+        if (! $secret = $this->credentials->client_secret) {
             throw new AuthenticationException('Encompass Client_secret is require');
         }
 
