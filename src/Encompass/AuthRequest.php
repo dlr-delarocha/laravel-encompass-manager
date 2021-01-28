@@ -2,6 +2,7 @@
 namespace Encompass;
 
 use App\Models\EncompassAccount;
+use App\Models\SalesProvider;
 use Encompass\Client\HttpClient;
 use Encompass\Exceptions\EncompassAuthenticationException;
 use Encompass\Exceptions\MissingEnvironmentVariablesException;
@@ -33,6 +34,7 @@ class AuthRequest extends HttpClient
         $this->user = $user;
         $this->client = $this->createHttpClient($user);
         $this->credentials = $this->getEncompassCredentials($user);
+
         return $this;
     }
 
@@ -70,7 +72,6 @@ class AuthRequest extends HttpClient
     public function refreshToken(AuthRequest $request)
     {
         $rawResponse = $this->login($this->user);
-
         $returnResponse = new EncompassResponse(
             $request,
             $rawResponse->getBody(),
@@ -162,7 +163,7 @@ class AuthRequest extends HttpClient
 
     private function getEncompassCredentials($user)
     {
-        return $user->salesProviders()->where('type', 'encompass')->first();
+        return SalesProvider::where(['type' => 'encompass', 'lender_id' => $user->id])->first();
     }
 
     private function getClientId()
