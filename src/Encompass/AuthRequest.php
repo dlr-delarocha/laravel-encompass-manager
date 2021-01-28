@@ -32,7 +32,7 @@ class AuthRequest extends HttpClient
         $this->setMethod($method);
         $this->user = $user;
         $this->client = $this->createHttpClient($user);
-        $this->credentials = $this->getEncompassCredentials();
+        $this->credentials = $this->getEncompassCredentials($user);
         return $this;
     }
 
@@ -136,7 +136,7 @@ class AuthRequest extends HttpClient
             throw new MissingEnvironmentVariablesException('Encompass User is require in Encompass config file.');
         }
 
-        if (empty ($account)) {
+        if (empty ($this->credentials)) {
             throw new EncompassAuthenticationException('EncompassAccount model empty');
         }
 
@@ -199,6 +199,7 @@ class AuthRequest extends HttpClient
     private function login()
     {
         $request = $this->client->getGuzzleClient();
+
         return $request->request('POST', config('encompass.domain') . $this->getEndpoint(),
             [
                 'form_params' => [
