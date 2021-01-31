@@ -6,6 +6,7 @@ use Encompass\Exceptions\MissingEnvironmentVariablesException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 
 class GuzzleHttpClient
@@ -68,14 +69,12 @@ class GuzzleHttpClient
      */
     public function prepareRequestMessage(EncompassRequest $request)
     {
-        $url = $request->getEndpoint();
-
         $request->setHeaders([
             'Authorization' => "Bearer {$this->getToken()}"
         ]);
 
         return [
-            $url,
+            $request->getEndpoint(),
             $request->getMethod(),
             $request->getHeaders(),
             $request->getParams()
@@ -90,7 +89,7 @@ class GuzzleHttpClient
      */
     public function sendRequest(EncompassRequest $request)
     {
-        list($url, $method, $parameters , $headers) = $this->prepareRequestMessage($request);
+        list($url, $method, $headers, $parameters) = $this->prepareRequestMessage($request);
 
         try {
             $rawResponse = $this->guzzleClient->request($method, $url, array_merge($parameters, $headers));
@@ -105,8 +104,7 @@ class GuzzleHttpClient
             $rawResponse->getReasonPhrase(),
             $rawResponse->getHeaders()
         );
-
-
+        
         if ($returnResponse->isError()) {
             throw $returnResponse->getThrownException();
         }

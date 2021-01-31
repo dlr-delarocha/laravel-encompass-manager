@@ -21,7 +21,7 @@ class Encompass extends HttpClient
      * Encompass constructor.
      * @throws \Exception
      */
-    public function __construct(Model $user = null)
+    public function __construct($user = null)
     {
         $this->client = $this->createHttpClient($user);
         $this->user = $user;
@@ -35,9 +35,10 @@ class Encompass extends HttpClient
      */
     public function getService()
     {
-        Cache::remember('token_' . $this->user->id, Carbon::now()->addMinutes(14), function () {
+        \Cache::remember('token_' . $this->user->id, Carbon::now()->addSecond(5), function () {
             return $this->login();
         });
+
         return $this;
     }
 
@@ -76,6 +77,4 @@ class Encompass extends HttpClient
     {
         return new Loan($this->user);
     }
-
-
 }

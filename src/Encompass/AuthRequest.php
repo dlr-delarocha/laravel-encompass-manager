@@ -72,6 +72,7 @@ class AuthRequest extends HttpClient
     public function refreshToken(AuthRequest $request)
     {
         $rawResponse = $this->login($this->user);
+
         $returnResponse = new EncompassResponse(
             $request,
             $rawResponse->getBody(),
@@ -153,7 +154,7 @@ class AuthRequest extends HttpClient
             throw new MissingEnvironmentVariablesException('Encompass password is require.');
         }
 
-        $password = Crypt::decryptString($this->credentials->password);
+        $password = \Crypt::decryptString($this->credentials->password);
 
         if (! $password) {
             throw new AuthenticationException('Encompass Password is require');

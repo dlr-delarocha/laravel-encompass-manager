@@ -187,6 +187,22 @@ class EncompassResponse
     }
 
     /**
+     * @return \Illuminate\Support\Collection|\Tightenco\Collect\Support\Collection
+     */
+    public function toCollection() {
+        return collect($this->getDecodedBody());
+    }
+
+    /**
+     * @param $field
+     * @return mixed
+     */
+    public function get($field)
+    {
+        return $this->toCollection()->get($field);
+    }
+
+    /**
      * @param SimpleXMLElement $xml
      * @return SimpleXMLElement
      */

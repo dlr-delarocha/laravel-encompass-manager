@@ -18,11 +18,12 @@ class EncompassRequest
      * @param null|string $accessToken
      * @param array $params
      */
-    public function __construct($method = null, $endpoint = null, array $params = [])
+    public function __construct($method = null, $endpoint = null, array $params = [], array $headers = [])
     {
         $this->setMethod($method);
         $this->setEndpoint($endpoint);
         $this->setParams($params);
+        $this->setHeaders($headers);
     }
     
     /**
