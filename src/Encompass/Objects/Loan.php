@@ -19,6 +19,8 @@ class Loan
     public function __construct($user)
     {
         $this->api = new ApiRequest($user);
+
+        return $this;
     }
 
     private function getEndpoint()
