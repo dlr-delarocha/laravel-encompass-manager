@@ -7,7 +7,8 @@ class URI
     const URIs = [
         'import' => '/encompass/v1/loans?loanFolder=%s&view=entity',
         'loans' => '/encompass/v1/loans/',
-        'create-folder' => '/encompass/v1/loans/%s/attachments/url?view=id'
+        'create-folder' => '/encompass/v1/loans/%s/attachments/url?view=id',
+        'xmlJson'   => '/encompass/v3/converter/loans?mediaType=mismo'
     ];
 
     /**
